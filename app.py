@@ -17,6 +17,7 @@ class Application(tornado.web.Application):
             ('/json', JsonHandler),
             ('/drama/list', DramaListHandler),
             ('/drama/episode/(\d+)', DramaEpisodeHandler),
+            ('/drama/episode/(\d+?)/(\d+?)', DramaEpisodePlayHandler),
 
             ('/parser/drama/hanjucc/tudou', ParserDramaHanjuccTudouHandler),
 
@@ -53,8 +54,8 @@ class DramaListHandler(BaseHandler):
         count = int(self.get_argument("count", 20))
         dramas = self.application.dramaModel.list_avalable(count, page * count)
         for drama in dramas:
-            eps = dramaEpisodeModel.get_episode(drama['id'])
-            drama['eps'] = eps.values()
+            eps = dramaEpisodeModel.get_by_drama_id(drama['id'])
+            drama['eps'] = eps
         self.render("drama_list.html", dramas=dramas)
 
 
@@ -74,6 +75,10 @@ class DramaEpisodeHandler(BaseHandler):
         episodes = self.application.episodeModel.get_by_drama_id(drama_id)
         self.render("episode.html", episodes=episodes)
 
+class DramaEpisodePlayHandler(BaseHandler):
+    def get(self, drama_id, ep):
+        episodes = self.application.episodeModel.get_by_drama_id(int(drama_id))
+        self.render("episode_play.html", ep = episodes[int(ep)])
 
 class IndexHandler(BaseHandler):
     def get(self):
