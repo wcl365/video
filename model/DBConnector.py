@@ -2,7 +2,7 @@ __author__ = 'fyz'
 
 from sqlalchemy import create_engine
 
-URI = "mysql://root@localhost/video"
+URI = "mysql+oursql://root@localhost/video"
 
 
 class _DBConnector(object):
