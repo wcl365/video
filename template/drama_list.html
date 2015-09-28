@@ -1,0 +1,34 @@
+{% extends "hanliu.html" %}
+{% block title %}今日韩流{% end %}
+{% block js %}
+<script src="//vjs.zencdn.net/4.6/video.js"></script>
+<script src="/static/js/jquery.min.js"></script>
+{% end %}
+{% block css %}
+<link href="/static/css/bootstrap.min.css" rel="stylesheet">
+<link href="//vjs.zencdn.net/4.6/video-js.css" rel="stylesheet">
+<link href="/static/css/animate.css" rel="stylesheet">
+{% end %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <table class="table table-bordered">
+                {% for drama in dramas %}
+                <tr>
+                    <td>{{ drama['id'] }}</td>
+                    <td>{{ drama['name'] }}</td>
+                    <!--<td><img style="width: 50px; height: 50px; display: block" class="img-thumbnail" src="{{ drama['poster'] }}"/></td>-->
+                    <td>{{ drama['description'] }}</td>
+                    <td>{{ drama['actors'] }}</td>
+                    <td>{{ drama['year'] }}</td>
+                    <td><a href="{{ drama['source'] }}" target="_blank">Goto</a></td>
+                    <td><a href="/drama/episode/{{ drama['id'] }}" target="_blank">选集</a></td>
+                </tr>
+                {% end %}
+            </table>
+        </div>
+    </div>
+</div>
+{% end %}

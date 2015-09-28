@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>test</title>
+    <script type="text/javascript" src="/static/js/flowplayer-3.2.12.min.js"></script>
+    <script src="/static/js/jquery-1.11.2.min.js"></script>
+</head>
+
+<body>
+<div id="player" style="width: 800px; height:480px;"></div>
+<script type="text/javascript">
+// var url = '';
+flowplayer("player", "/static/flash/flowplayer.swf", {
+    wmode: 'direct',
+    plugins: {
+        httpstreaming: {
+            url: '/static/flash/flashlsFlowPlayer.swf',
+            hls_debug : false,
+            hls_debug2 : false,
+            hls_lowbufferlength : 3,
+            hls_minbufferlength : -1,
+            hls_maxbufferlength : 60,
+            hls_startfromlevel : -1,
+            hls_seekfromlevel : -1,
+            hls_live_flushurlcache : false,
+            hls_seekmode : "ACCURATE",
+            hls_fragmentloadmaxretry : -1,
+            hls_manifestloadmaxretry : -1,
+            hls_capleveltostage : false,
+            hls_maxlevelcappingmode : "downscale"
+        }
+    },
+    clip: {
+        accelerated: true,
+        url: "http://pl.youku.com/playlist/m3u8?vid=XOTQxNjM3NDMy&ts=1437386952&ctype=12&token=8135&keyframe=1&sid=043738695251212ab12f5&ev=1&type=mp4&ep=ciaXHUqFUMcF5ybeij8bNn7jdiEKXJZ1kn7N%2F4gfA8VQNaHQkT%2FSwg%3D%3D&oip=1944853778",
+        ipadUrl: "http://streambox.fr/playlists/test_001/stream.m3u8",
+        urlResolvers: "httpstreaming",
+        lang: "zh",
+        provider: "httpstreaming",
+        autoPlay: false,
+        autoBuffering: true
+    },
+    log: {
+        level: 'debug',
+        filter: 'org.flowplayer.controller.*'
+    }
+});
+</script>
+</body>
+</html>

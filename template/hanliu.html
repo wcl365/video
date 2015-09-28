@@ -1,0 +1,32 @@
+<!doctype html>
+<html>
+<head>
+    <title>{% block title %}{% end %}</title>
+    {% block bjs %}{% end %}
+    {% block js %}{% end %}
+    {% block bcss %}{% end %}
+    {% block css %}{% end %}
+    {% block meta %}{% end %}
+</head>
+<body>
+<nav class="navbar navbar-fixed-top bg-info" role="navigation">
+    <div class="container">
+        <!-- Brand and toggle get grouped for better mobile display -->
+        <div class="navbar-header">
+            <a class="navbar-brand" href="/" style="font-weight: bold">韩流</a>
+        </div>
+        <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="/">音乐</a></li>
+                <li><a href="/drama">韩剧</a></li>
+                <li><a href="/tv">韩流电视台</a></li>
+                <li><a href="/youku">工具</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div style="padding-top: 70px;">
+{% block body %}{% end %}
+</div>
+</body>
+</html>

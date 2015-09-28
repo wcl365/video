@@ -1,0 +1,50 @@
+{% extends "hanliu.html" %}
+
+{% block title %}今日韩流{% end %}
+{% block js %}
+<script type="text/javascript" src="/static/js/flowplayer-3.2.12.min.js"></script>
+<script src="/static/js/jquery-1.11.2.min.js"></script>
+{% end %}
+{% block css %}
+<link href="/static/css/bootstrap.min.css" rel="stylesheet">
+{% end %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="input-group url">
+            <input type="text" id="rurl" placeholder="输入要转换的优酷视频地址" class="form-control">
+              <span class="input-group-btn">
+                <button class="btn btn-default" id="go" type="button">Go!</button>
+              </span>
+        </div><!-- /input-group -->
+        {% if hls_url %}
+        <div>
+            <video controls autoplay >
+                <source src="{{ hls_url }}" />
+            </video>
+        </div>
+        {% end %}
+    </div>
+</div>
+<style>
+    body {background: #000000}
+    .navbar {background: #000000;}
+    .tv{margin: 0 auto; width: 900px;}
+    .url{width:750px; margin-left: auto; margin-right: auto; margin-top: 5px; margin-bottom: 20px;}
+</style>
+
+<script>
+$("#go").click(function() {
+    var source = $("#rurl").val().trim();
+    if (source.length == 0) {
+        return;
+    }
+    var result = source.match(/http:\/\/v.youku.com\/.*?id_(\S+)\.html/);
+    console.log(result)
+    var vid = result[1];
+    window.location.href = "/youku?channel=youku&vid=" + vid;
+})
+</script>
+
+{% end %}

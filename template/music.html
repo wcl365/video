@@ -1,0 +1,52 @@
+{% extends "hanliu.html" %}
+{% block title %}今日韩流{% end %}
+{% block js %}
+<script src="//vjs.zencdn.net/4.6/video.js"></script>
+{% end %}
+{% block css %}
+<link href="/static/css/bootstrap.min.css" rel="stylesheet">
+<link href="//vjs.zencdn.net/4.6/video-js.css" rel="stylesheet">
+{% end %}
+
+{% block body %}
+<div class="container">
+
+  <div class="row">
+      {% for r in [0, 1, 2] %}
+    <div class="col-md-4">
+        <ul class="list-group list-unstyled">
+            {% for i, v in enumerate(videos) %}
+            {% if i % 3 == r %}
+            <li class="video">
+              <video id="video-{{ v['id'] }}" class="list-group-item video-js vjs-default-skin vjs-big-play-centered"
+                     controls preload="auto" width="300" height="170"
+                     poster="{{ v['poster'] }}"
+                     data-setup='{"example_option":true}'>
+                  <source src="{{ v['url'] }}" type='video/flv' />
+              </video>
+              <div class=" video-detail"><span class="label label-info">{{ v['artist'] }}</span><span class="label label-success">{{ v['title'] }}</span> </div>
+            </li>
+            {% end %}
+            {% end %}
+        </ul>
+    </div>
+      {% end %}
+
+  </div>
+  <div class="row">
+    <ul class="pagination .pagination-lg">
+        <li {% if cur_page <= 1 %}class="disable"{% end %}><a href="/music/{{ cur_page - 1 }}">&laquo;</a></li>
+        {% for p in page_list %}
+        <li {% if p == cur_page %}class="active"{% end %}><a href="/music/{{ p }}">{{ p }}</a></li>
+        {% end %}
+        <li><a href="/music/{{ cur_page + 1 }}">&raquo;</a></li>
+    </ul>
+  </div>
+</div>
+ <style>
+     .video {width: 300px; margin: 10px auto;}
+     .video-detail {margin-top: 8px;}
+     .video-detail .label {white-space: normal; margin-right:2px; border-radius: 0px;}
+     .pagination {padding-left: 0px;margin-left: 380px; margin-top: 5px;}
+ </style>
+{% end %}

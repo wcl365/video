@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>the5fire m3u8 test</title>
+<script src="/static/js/swfobject.js"></script>
+</head>
+<body>
+<div id="player">
+</div>
+<script>
+    var flashvars = {
+        // M3U8 url, or any other url which compatible with SMP player (flv, mp4, f4m)
+        // escaped it for urls with ampersands
+        // src: escape("http://www.the5fire.com/static/demos/diaosi.m3u8"),
+        src: escape("{{ hls_url }}"),
+        // url to OSMF HLS Plugin
+        plugin_m3u8: "/static/flash/HLSProviderOSMF.swf",
+    };
+    var params = {
+        // self-explained parameters
+        allowFullScreen: true,
+        allowScriptAccess: "always",
+        bgcolor: "#000000"
+    };
+    var attrs = {
+        name: "player"
+    };
+
+    swfobject.embedSWF(
+        // url to SMP player
+        "/static/flash/StrobeMediaPlayback.swf",
+        // div id where player will be place
+        "player",
+        // width, height
+        "800", "485",
+        // minimum flash player version required
+        "10.2",
+        // other parameters
+        null, flashvars, params, attrs
+    );
+</script>
+</body>
+</html>
