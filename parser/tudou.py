@@ -2,6 +2,12 @@
 
 import requests
 from base import BaseParser
+import logging
+from model.models import ucModel
+
+from common import config
+from common import env
+env.loadEnv()
 
 class TudouParser(BaseParser):
 
@@ -11,7 +17,7 @@ class TudouParser(BaseParser):
         iid = self.r1(r, content)
 
         if iid == None:
-            print 'tudou parse error'
+            LOGGER.info('tudou parse error %s' % vid)
             return
 
         urls = [
@@ -21,13 +27,13 @@ class TudouParser(BaseParser):
             ]
         can_urls = []
         for url in urls:
-            c = requests.get(url).content
-            if c.find("M3U") > 0:
+            persistentResult = ucModel.insert(url)
+            if persistentResult >= 0:
                 can_urls.append(url)
-            if len(can_urls) >= 2:
-                break
+                if len(can_urls) >= 2:
+                    break
         if len(can_urls) == 0:
-            print 'tudou parse error 2'
+            logging.info('tudou parse error, cannot get m3u8 content')
             return None, None
         if len(can_urls) == 1:
             return can_urls[0], can_urls[0]

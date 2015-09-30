@@ -6,6 +6,7 @@ import tornado.web
 import argparse
 
 from model.models import DramaModel, DramaEpisodeModel, dramaEpisodeModel
+from service import DramaService
 
 from spider.drama.get_drama import dramaEpisodeSourceInstance
 
@@ -14,7 +15,6 @@ class Application(tornado.web.Application):
     def __init__(self, mode, debug=False):
         handlers = [
             ('/', IndexHandler),
-            ('/json', JsonHandler),
             ('/drama/list', DramaListHandler),
             ('/drama/episode/(\d+)', DramaEpisodeHandler),
             ('/drama/episode/(\d+?)/(\d+?)', DramaEpisodePlayHandler),
@@ -31,31 +31,19 @@ class Application(tornado.web.Application):
         self.mode = mode
         self.dramaModel = DramaModel()
         self.episodeModel = DramaEpisodeModel()
+        self.dramaService = DramaService()
         super(Application, self).__init__(handlers, **settings)
 
 
 class BaseHandler(tornado.web.RequestHandler):
     pass
 
-
-class JsonHandler(BaseHandler):
-    def get(self):
-        vid = 3
-        episodes = self.application.episodeModel.get_by_drama_id(vid)
-        drama = self.application.dramaModel.get_by_id(vid)
-        for episode in episodes:
-            episode['thumbnailPic'] = drama['poster']
-        self.write({"videos": episodes})
-
-
 class DramaListHandler(BaseHandler):
     def get(self):
         page = int(self.get_argument("page", 0))
         count = int(self.get_argument("count", 20))
-        dramas = self.application.dramaModel.list_avalable(count, page * count)
-        for drama in dramas:
-            eps = dramaEpisodeModel.get_by_drama_id(drama['id'])
-            drama['eps'] = eps
+
+        dramas = self.application.dramaService.get_drama_infos(count, page * count)
         self.render("drama_list.html", dramas=dramas)
 
 
@@ -63,10 +51,7 @@ class ApiDramaListHandler(BaseHandler):
     def get(self):
         page = int(self.get_argument("page", 0))
         count = int(self.get_argument("count", 20))
-        dramas = self.application.dramaModel.list_avalable(count, page * count)
-        for drama in dramas:
-            eps = dramaEpisodeModel.get_by_drama_id(drama['id'])
-            drama['eps'] = eps
+        dramas = self.application.dramaService.get_drama_infos(count, page * count)
         self.write({"videos": dramas})
 
 

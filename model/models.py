@@ -5,15 +5,20 @@ import time
 import requests
 import hashlib
 import json
+import logging
 
+from common import env
+env.loadEnv()
 
 class BaseModel(object):
     def execute(self, sql, *params):
         sql = sql % self.__tablename__
-        engine.execute(sql, *params)
+        logging.debug(sql)
+        return engine.execute(sql, *params)
 
     def fetch(self, sql, *params):
         sql = sql % self.__tablename__
+        logging.debug(sql)
         res = engine.execute(sql, *params)
         if not res:
             return []
@@ -25,6 +30,7 @@ class BaseModel(object):
 
     def one(self, sql, *params):
         sql = sql % self.__tablename__
+        logging.debug(sql)
         res = engine.execute(sql, *params)
         if not res:
             return None
@@ -70,8 +76,8 @@ class DramaEpisodeModel(BaseModel):
     __tablename__ = 'drama_episode'
 
     def insert(self, drama_id, episode, time_release, source, url, hd_url):
-        sql = "insert ignore into %s (drama_id, episode, time_release, `source`, `url`, `hd_url`) values (?, ?, ?, ?, ?, ?)"
-        self.execute(sql, drama_id, episode, time_release, source, url, hd_url)
+        sql = "insert ignore into %s (drama_id, episode, time_release, `source`, `url`, `hd_url`, time_created) values (?, ?, ?, ?, ?, ?, ?)"
+        self.execute(sql, drama_id, episode, time_release, source, url, hd_url, cur_ts())
 
     def get_by_drama_id(self, drama_id):
         sql = "select * from %s where drama_id = ? order by episode"
@@ -84,16 +90,22 @@ class UrlContentModel(BaseModel):
     def insert(self, url):
         resp = requests.get(url)
         if resp.status_code != 200:
-            print "get content error", url
-            return
+            logging.error("get content error: %s" % url)
+            return -1
         content = resp.content
+        if len(content) < 500:
+            logging.error("get content error, maybe empty : %s, %s" % url, content)
+            return -1
         m = hashlib.md5()
         m.update(content)
         hash_value = m.hexdigest()
 
         sql = "insert ignore into %s values (null, ?, ?, ?)"
-        self.execute(sql, url, hash_value, content)
-
+        value = self.execute(sql, url, hash_value, content)
+        if value.rowcount == 0:
+            logging.info("dupliate url, %s" % url)
+            return 0
+        return 1
 
 class DramaGetStrategyModel(BaseModel):
     __tablename__ = 'drama_get_strategy'

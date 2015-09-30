@@ -2,8 +2,9 @@
 
 import requests
 import re
-import mechanize, cookielib
-from selenium import webdriver
+# import mechanize, cookielib
+# from selenium import webdriver
+import json
 
 FAKE_HEADER = {
     "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 8_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B410 Safari/600.1.4",
@@ -35,10 +36,15 @@ class BaseParser(object):
     def get_decoded_html(self, url):
         response = requests.get(url, headers=FAKE_HEADER)
         if response.status_code != 200:
-            raise Exception("get content error " + url)
+            return None
         data = response.content
         charset = self.r1(r'charset=([\w-]+)', response.headers['content-type'])
         if charset:
             return data.decode(charset)
         else:
             return data
+
+    def get_decoded_json(self, url):
+        data = self.get_decoded_html(url)
+        if data:
+            return json.loads(data)
