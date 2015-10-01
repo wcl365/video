@@ -5,6 +5,7 @@ import re
 # import mechanize, cookielib
 # from selenium import webdriver
 import json
+import chardet
 
 FAKE_HEADER = {
     "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 8_1 like Mac OS X) AppleWebKit/600.1.4 (KHTML, like Gecko) Version/8.0 Mobile/12B410 Safari/600.1.4",
@@ -40,11 +41,20 @@ class BaseParser(object):
         data = response.content
         charset = self.r1(r'charset=([\w-]+)', response.headers['content-type'])
         if charset:
-            return data.decode(charset)
+            return self.decode_str(data, charset)
         else:
-            return data
+            ch = chardet.detect(data)
+            if ch['confidence'] > 0.5:
+                return self.decode_str(data, ch['encoding'])
+
+        return data
 
     def get_decoded_json(self, url):
         data = self.get_decoded_html(url)
         if data:
             return json.loads(data)
+
+    def decode_str(self, s, code):
+        if code.lower() == 'gb2312':
+            code = 'gb18030'
+        return s.decode(code)

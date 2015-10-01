@@ -50,9 +50,13 @@ def cur_ts():
 class DramaModel(BaseModel):
     __tablename__ = "drama"
 
-    def insert(self, name, year, poster, actor, desc, href):
-        sql = "insert into %s (`name`, `poster`, `year`, `time_created`, `actors`, `description`, `source`) values (?, ?, ?, ?, ?, ?, ?)"
-        self.execute(sql, name, poster, year, cur_ts(), actor, desc, href)
+    def insert(self, name, year, poster, actor, desc, href, score=0):
+        sql = "insert into %s (`name`, `poster`, `year`, `time_created`, `actors`, `description`, `source`, `score`) values (?, ?, ?, ?, ?, ?, ?, ?)"
+        self.execute(sql, name, poster, year, cur_ts(), actor, desc, href, score)
+
+    def set_score(self, id, score):
+        sql = "update %s set score=? where id=?"
+        self.execute(sql, score, id)
 
     def list(self):
         sql = "select * from %s"
@@ -67,6 +71,12 @@ class DramaModel(BaseModel):
         x =  self.fetch(sql, name)
         if x:
             return x[0]
+
+    def search_by_name(self, name, count=20):
+        if len(name) == 0:
+            return []
+        sql = "select * from %s where id in (select DISTINCT(drama_id) from drama_episode) and name like ? order by year desc limit ?"
+        return self.fetch(sql, '%%%s%%' % name, count)
 
     def list_avalable(self, limit, offset):
         sql = "select * from %s where id in (select DISTINCT(drama_id) from drama_episode) order by year desc limit ? offset ?"
@@ -94,7 +104,7 @@ class UrlContentModel(BaseModel):
             return -1
         content = resp.content
         if len(content) < 500:
-            logging.error("get content error, maybe empty : %s, %s" % url, content)
+            logging.error("get content error, maybe empty : %s, %s" % (url, content))
             return -1
         m = hashlib.md5()
         m.update(content)

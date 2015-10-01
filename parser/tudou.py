@@ -13,6 +13,8 @@ class TudouParser(BaseParser):
 
     def parse(self, vid):
         content = self.get_decoded_html("http://www.tudou.com/programs/view/%s" % vid)
+        if not content:
+            return None, None
         r = r'iid:\s?(\d+)'
         iid = self.r1(r, content)
 
@@ -42,4 +44,5 @@ class TudouParser(BaseParser):
 
 
 if __name__ == '__main__':
-    print TudouParser().parse("yWcDTtLvndU")
+    # print TudouParser().parse("yWcDTtLvndU")
+    pass

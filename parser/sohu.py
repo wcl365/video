@@ -4,24 +4,34 @@ from base import BaseParser
 import json
 import sys
 from model.models import dramaModel, dramaEpisodeModel, ucModel, dramaInfoModel
+import logging
 from common import env; env.loadEnv()
 
 class SohuParser(BaseParser):
 
     def fetch_list(self):
         url = "http://api.tv.sohu.com/v4/search/channel/sub.json?subId=19&&api_key=695fe827ffeb7d74260a813025970bd5&build=5.0.1.1&offset=0&page_size=100&partner=1&pay_type=0&plat=3&poid=1&sver=5.0.1"
-        content = self.get_decoded_html(url)
-        content = json.loads(content)
+        content = self.get_decoded_json(url)
         videos = content['data']['videos']
         sp = SohuParser()
         for v in videos:
-            print v['album_name'], v['main_actor'], v['publish_time'][:4], v['aid'], v['hor_w16_pic']
             name = v['album_name']
             d = dramaModel.get_by_name(name)
-            if d:
-                print 'exist'
-                if dramaEpisodeModel.get_by_drama_id(d['id']):
-                    continue
+            score = 0
+            try:
+                score = int(float(v['score_tip'][:-3]) * 10)
+            except:
+                pass
+            if not d:
+                dramaModel.insert(name, v['publish_time'][:4], v['hor_w16_pic'], v['main_actor'], v['album_desc'], v['aid'], score)
+                d = dramaModel.get_by_name(name)
+            else:
+                logging.info("set score %s for %s" % (score, d['id']))
+                dramaModel.set_score(d['id'], score)
+            eps = dramaEpisodeModel.get_by_drama_id(d['id'])
+            if eps:
+                sp.parse_album_by_aid(d['id'], v['aid'], eps[-1]['episode'])
+            else:
                 sp.parse_album_by_aid(d['id'], v['aid'])
 
     def parse_album_by_aid(self, drama_id, aid, last_ep=0):
@@ -42,9 +52,9 @@ class SohuParser(BaseParser):
                 hd_url = v['url_high']
             v1, v2 = ucModel.insert(url), ucModel.insert(hd_url)
             if v1 > 0 and v2 > 0:
-                epModel.insert(drama_id, i + 1, 0, source, url, hd_url)
+                dramaEpisodeModel.insert(drama_id, i + 1, 0, source, url, hd_url)
             else:
                 logging.error("sohu get url content error, %s, %s" % (url, hd_url))
 
 if __name__ == '__main__':
-    SohuDramaListParser().fetch()
+    SohuParser().fetch_list()
