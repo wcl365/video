@@ -75,8 +75,9 @@ class DramaModel(BaseModel):
     def search_by_name(self, name, count=20):
         if len(name) == 0:
             return []
-        sql = "select * from %s where id in (select DISTINCT(drama_id) from drama_episode) and name like ? order by year desc limit ?"
-        return self.fetch(sql, '%%%s%%' % name, count)
+        match_str = '%%%s%%' % name
+        sql = "select * from %s where id in (select DISTINCT(drama_id) from drama_episode) and (name like ? or actors like ?) order by year desc limit ?"
+        return self.fetch(sql, match_str, match_str, count)
 
     def list_avalable(self, limit, offset):
         sql = "select * from %s where id in (select DISTINCT(drama_id) from drama_episode) order by year desc limit ? offset ?"
