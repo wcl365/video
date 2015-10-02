@@ -1,0 +1,8 @@
+oursql
+tornado
+chardet
+pyquery
+requests
+six
+SQLAlchemy
+xmltodict
