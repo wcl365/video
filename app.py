@@ -77,8 +77,11 @@ class DramaEpisodeHandler(BaseHandler):
 
 class DramaEpisodePlayHandler(BaseHandler):
     def get(self, drama_id, ep):
+        drama = self.application.dramaModel.get_by_id(int(drama_id))
+        if not drama:
+            self.write(u"节目不存在")
         episodes = self.application.episodeModel.get_by_drama_id(int(drama_id))
-        self.render("episode_play.html", ep = episodes[int(ep)], drama_id=drama_id, eps=episodes)
+        self.render("episode_play.html", ep = episodes[int(ep)], eps=episodes, drama=drama)
 
 class IndexHandler(BaseHandler):
     def get(self):
@@ -108,7 +111,7 @@ class WeixinHandler(BaseHandler):
             content = []
             for d in dramas:
                 tmp = {
-                    'title': '%s  第%s集' % (d['name'], 1),
+                    'title': u'%s  第%s集' % (d['name'], 1),
                     'description': d['description'],
                     'picurl': d['poster'],
                     'url': '%s%s%s/%s' % (appConfig.get("server.host"), '/drama/episode/', d['id'], 1)

@@ -1,11 +1,12 @@
 <html>
     <head>
+        <title>{{ drama['name'] 第{{ ep['episode'] }}集</title>
     </head>
     <body>
         <video src="{{ ep['hd_url'] }}" style="width: 100%;"></video>
         <ul>
             {% for e in eps %}
-                <li><a href="{{ e['hd_url'] }}">第{{ e['episode'] }}集</a></li>
+                <li><a href="/drama/episode/{{ drama_id }}/{{ e['episode'] }}">第{{ e['episode'] }}集</a></li>
             {% end %}
         </ul>
     </body>
