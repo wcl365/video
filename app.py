@@ -114,7 +114,7 @@ class WeixinHandler(BaseHandler):
                     'title': u'%s  第%s集' % (d['name'], 1),
                     'description': d['description'],
                     'picurl': d['poster'],
-                    'url': '%s%s%s/%s' % (appConfig.get("server.host"), '/drama/episode/', d['id'], 1)
+                    'url': u'%s%s%s/%s' % (appConfig.get("server.host"), '/drama/episode/', d['id'], 1)
                 }
                 content.append(tmp)
             if len(content) == 0:
