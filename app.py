@@ -101,7 +101,7 @@ class WeixinHandler(BaseHandler):
 
         if isinstance(message, EventMessage) and message.type == 'subcribe':
             response = self.application.wechat.response_text("感谢关注, 我们会每天给你推荐你最感兴趣的演出! (。・`ω´・)")
-        elif isinstance(message, TextMessage) and (message.content.startswith("search") or message.content.startswith("搜索")):
+        elif isinstance(message, TextMessage) and (message.content.startswith("search") or message.content.startswith("ss")):
             value = message.content.split()
             keyword = ' '.join(value[1:])
             dramas = self.application.dramaService.search_by_name(keyword, count=5)
