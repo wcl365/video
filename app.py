@@ -7,6 +7,10 @@ import argparse
 
 from model.models import DramaModel, DramaEpisodeModel, dramaEpisodeModel
 from service import DramaService
+from common import appConfig
+
+from wechat.basic import WechatBasic
+from wechat.messages import *
 
 
 class Application(tornado.web.Application):
@@ -20,6 +24,8 @@ class Application(tornado.web.Application):
 
             ('/api/drama/list', ApiDramaListHandler),
             ('/api/drama/search', ApiDramaSearchHandler),
+
+            ('/weixin', WeixinHandler),
         ]
         settings = dict(template_path=os.path.join(os.path.dirname(__file__), "./template"),
                         static_path=os.path.join(os.path.dirname(__file__), "./static"),
@@ -30,6 +36,8 @@ class Application(tornado.web.Application):
         self.dramaModel = DramaModel()
         self.episodeModel = DramaEpisodeModel()
         self.dramaService = DramaService()
+        self.wechat = WechatBasic(token=appConfig.get("wechat.token"), appid=appConfig.get("wechat.appId"),
+                          appsecret=appConfig.get("wechat.appSecret"))
         super(Application, self).__init__(handlers, **settings)
 
 
@@ -75,6 +83,64 @@ class DramaEpisodePlayHandler(BaseHandler):
 class IndexHandler(BaseHandler):
     def get(self):
         self.redirect("/drama/list")
+
+class WeixinHandler(BaseHandler):
+    def get(self):
+        signature = self.get_argument("signature")
+        timestamp = self.get_argument("timestamp")
+        nonce = self.get_argument("nonce")
+        echostr = self.get_argument("echostr")
+        if self.application.wechat.check_signature(signature, timestamp, nonce):
+            self.write(echostr)
+        else:
+            self.write("error")
+
+    def post(self):
+        self.application.wechat.parse_data(self.request.body)
+        message = self.application.wechat.get_message()
+
+        if isinstance(message, EventMessage) and message.type == 'subcribe':
+            response = self.application.wechat.response_text(u"感谢关注, 我们会每天给你推荐你最感兴趣的演出! (。・`ω´・)")
+        elif isinstance(message, TextMessage) and message.content == 'new':
+            response = self.application.wechat.response_news([
+                {
+                    'title': u"第一条新闻",
+                    "description": "这是一个描述",
+                    "picurl": "http://image.woshipm.com/wp-files/2015/04/mm.jpg",
+                    "url": "http://www.woshipm.com/operate/151369.html"
+                },
+                {
+                    'title': u"第二条新闻",
+                    "description": "这是一个描述",
+                    "picurl": "http://image.woshipm.com/wp-files/2015/04/mm.jpg",
+                    "url": "http://www.woshipm.com/operate/151369.html"
+                },
+                {
+                    'title': u"第三条新闻",
+                    "description": "这是一个描述",
+                    "picurl": "http://image.woshipm.com/wp-files/2015/04/mm.jpg",
+                    "url": "http://www.woshipm.com/operate/151369.html"
+                }
+            ])
+        elif isinstance(message, TextMessage) and message.content.startswith("ep"):
+            v = message.content.split()
+            try
+                drama_id = int(v[1])
+                ep = int(v[2])
+                response = self.application.wechat.response_news([
+                    {
+                        'title': u"第一条新闻",
+                        "description": "这是一个描述",
+                        "picurl": "http://image.woshipm.com/wp-files/2015/04/mm.jpg",
+                        "url": "http://www.woshipm.com/operate/151369.html"
+                    }
+                ])
+            except:
+                response = self.application.wechat.response_text(u"格式错误, 格式是: ep 电视剧 集数")
+        else:
+            response = self.application.wechat.response_text(u"感谢发送")
+        return response
+
 
 
 if __name__ == "__main__":

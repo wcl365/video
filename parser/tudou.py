@@ -11,7 +11,7 @@ env.loadEnv()
 
 class TudouParser(BaseParser):
 
-    def parse(self, vid):
+    def parse(self, vid, store=True):
         content = self.get_decoded_html("http://www.tudou.com/programs/view/%s" % vid)
         if not content:
             return None, None
@@ -29,7 +29,10 @@ class TudouParser(BaseParser):
             ]
         can_urls = []
         for url in urls:
-            persistentResult = ucModel.insert(url)
+            if store:
+                persistentResult = ucModel.insert(url)
+            else:
+                persistentResult = 1
             if persistentResult >= 0:
                 can_urls.append(url)
                 if len(can_urls) >= 2:
@@ -44,5 +47,4 @@ class TudouParser(BaseParser):
 
 
 if __name__ == '__main__':
-    # print TudouParser().parse("yWcDTtLvndU")
-    pass
+    print TudouParser().parse("38u8BuXqbfw", False)
