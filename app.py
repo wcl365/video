@@ -78,7 +78,7 @@ class DramaEpisodeHandler(BaseHandler):
 class DramaEpisodePlayHandler(BaseHandler):
     def get(self, drama_id, ep):
         episodes = self.application.episodeModel.get_by_drama_id(int(drama_id))
-        self.render("episode_play.html", ep = episodes[int(ep)])
+        self.render("episode_play.html", ep = episodes[int(ep)], drama_id=drama_id, eps=episodes)
 
 class IndexHandler(BaseHandler):
     def get(self):
@@ -104,18 +104,18 @@ class WeixinHandler(BaseHandler):
         elif isinstance(message, TextMessage) and (message.content.startswith("search") or message.content.startswith("ss")):
             value = message.content.split()
             keyword = ' '.join(value[1:])
-            dramas = self.application.dramaService.search_by_name(keyword, count=5)
+            dramas = self.application.dramaService.search_by_name(keyword, count=8)
             content = []
             for d in dramas:
                 tmp = {
-                    'title': d['name'],
+                    'title': '%s  第%s集' % (d['name'], 1),
                     'description': d['description'],
                     'picurl': d['poster'],
                     'url': '%s%s%s/%s' % (appConfig.get("server.host"), '/drama/episode/', d['id'], 1)
                 }
                 content.append(tmp)
             if len(content) == 0:
-                response = "没有资源"
+                response = "没有结果, 你可以尝试换个名称或者演员搜索"
             else:
                 response = self.application.wechat.response_news(content)
         else:
