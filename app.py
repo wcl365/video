@@ -81,7 +81,7 @@ class DramaEpisodePlayHandler(BaseHandler):
         if not drama:
             self.write(u"节目不存在")
         episodes = self.application.episodeModel.get_by_drama_id(int(drama_id))
-        self.render("episode_play.html", ep = episodes[int(ep)], eps=episodes, drama=drama)
+        self.render("episode_play.html", ep = episodes[int(ep) - 1], eps=episodes, drama=drama)
 
 class IndexHandler(BaseHandler):
     def get(self):
