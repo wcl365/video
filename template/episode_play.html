@@ -6,8 +6,12 @@
         <video src="{{ ep['hd_url'] }}" style="width: 100%;"></video>
         <ul>
             {% for e in eps %}
-                <li><a href="/drama/episode/{{ drama['id'] }}/{{ e['episode'] }}">第{{ e['episode'] }}集</a></li>
+                <li class="ep"><a href="/drama/episode/{{ drama['id'] }}/{{ e['episode'] }}">第{{ e['episode'] }}集</a></li>
             {% end %}
         </ul>
+        <style>
+            .ep { width: 100%; height: 60px; padding-left:10px; line-height: 60px; vertical-align: middle;
+                text-align: center; border: 1px solid gray; text-decoration:none; list-style:none; }
+        </style>
     </body>
 </html>
