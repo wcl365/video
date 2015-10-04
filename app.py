@@ -101,47 +101,26 @@ class WeixinHandler(BaseHandler):
 
         if isinstance(message, EventMessage) and message.type == 'subcribe':
             response = self.application.wechat.response_text("感谢关注, 我们会每天给你推荐你最感兴趣的演出! (。・`ω´・)")
-        elif isinstance(message, TextMessage) and message.content == 'new':
-            response = self.application.wechat.response_news([
-                {
-                    'title': "第一条新闻",
-                    "description": "这是一个描述",
-                    "picurl": "http://image.woshipm.com/wp-files/2015/04/mm.jpg",
-                    "url": "http://www.woshipm.com/operate/151369.html"
-                },
-                {
-                    'title': "第二条新闻",
-                    "description": "这是一个描述",
-                    "picurl": "http://image.woshipm.com/wp-files/2015/04/mm.jpg",
-                    "url": "http://www.woshipm.com/operate/151369.html"
-                },
-                {
-                    'title': "第三条新闻",
-                    "description": "这是一个描述",
-                    "picurl": "http://image.woshipm.com/wp-files/2015/04/mm.jpg",
-                    "url": "http://www.woshipm.com/operate/151369.html"
+        elif isinstance(message, TextMessage) and (message.content.startswith("search") or message.content.startswith("搜索")):
+            value = message.content.split()
+            keyword = ' '.join(value[1:])
+            dramas = self.application.dramaService.search_by_name(keyword, count=5)
+            content = []
+            for d in dramas:
+                tmp = {
+                    'title': d['name'],
+                    'description': d['description'],
+                    'picurl': d['poster'],
+                    'url': '%s%s%s/%s' % (appConfig.get("server.host"), '/drama/episode/', d['id'], 1)
                 }
-            ])
-        elif isinstance(message, TextMessage) and message.content.startswith("ep"):
-            v = message.content.split()
-            try:
-                drama_id = int(v[1])
-                ep = int(v[2])
-                response = self.application.wechat.response_news([
-                    {
-                        'title': "第一条新闻",
-                        "description": "这是一个描述",
-                        "picurl": "http://image.woshipm.com/wp-files/2015/04/mm.jpg",
-                        "url": "http://www.woshipm.com/operate/151369.html"
-                    }
-                ])
-            except:
-                response = self.application.wechat.response_text("格式错误, 格式是: ep 电视剧 集数")
+                content.append(tmp)
+            if len(content) == 0:
+                response = "没有资源"
+            else:
+                response = self.application.wechat.response_news(content)
         else:
             response = self.application.wechat.response_text("感谢发送")
-        return response
-
-
+        self.write(response)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
