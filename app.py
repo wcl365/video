@@ -124,7 +124,7 @@ class WeixinHandler(BaseHandler):
             ])
         elif isinstance(message, TextMessage) and message.content.startswith("ep"):
             v = message.content.split()
-            try
+            try:
                 drama_id = int(v[1])
                 ep = int(v[2])
                 response = self.application.wechat.response_news([
