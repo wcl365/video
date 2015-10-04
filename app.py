@@ -100,23 +100,23 @@ class WeixinHandler(BaseHandler):
         message = self.application.wechat.get_message()
 
         if isinstance(message, EventMessage) and message.type == 'subcribe':
-            response = self.application.wechat.response_text(u"感谢关注, 我们会每天给你推荐你最感兴趣的演出! (。・`ω´・)")
+            response = self.application.wechat.response_text("感谢关注, 我们会每天给你推荐你最感兴趣的演出! (。・`ω´・)")
         elif isinstance(message, TextMessage) and message.content == 'new':
             response = self.application.wechat.response_news([
                 {
-                    'title': u"第一条新闻",
+                    'title': "第一条新闻",
                     "description": "这是一个描述",
                     "picurl": "http://image.woshipm.com/wp-files/2015/04/mm.jpg",
                     "url": "http://www.woshipm.com/operate/151369.html"
                 },
                 {
-                    'title': u"第二条新闻",
+                    'title': "第二条新闻",
                     "description": "这是一个描述",
                     "picurl": "http://image.woshipm.com/wp-files/2015/04/mm.jpg",
                     "url": "http://www.woshipm.com/operate/151369.html"
                 },
                 {
-                    'title': u"第三条新闻",
+                    'title': "第三条新闻",
                     "description": "这是一个描述",
                     "picurl": "http://image.woshipm.com/wp-files/2015/04/mm.jpg",
                     "url": "http://www.woshipm.com/operate/151369.html"
@@ -129,16 +129,16 @@ class WeixinHandler(BaseHandler):
                 ep = int(v[2])
                 response = self.application.wechat.response_news([
                     {
-                        'title': u"第一条新闻",
+                        'title': "第一条新闻",
                         "description": "这是一个描述",
                         "picurl": "http://image.woshipm.com/wp-files/2015/04/mm.jpg",
                         "url": "http://www.woshipm.com/operate/151369.html"
                     }
                 ])
             except:
-                response = self.application.wechat.response_text(u"格式错误, 格式是: ep 电视剧 集数")
+                response = self.application.wechat.response_text("格式错误, 格式是: ep 电视剧 集数")
         else:
-            response = self.application.wechat.response_text(u"感谢发送")
+            response = self.application.wechat.response_text("感谢发送")
         return response
 
 
