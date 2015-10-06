@@ -100,7 +100,7 @@ class DramaEpisodeModel(BaseModel):
         return self.execute(sql, url, hd_url, id)
 
     def new_drama(self, count):
-        sql = "select drama_id, max(episode) as episode from %s group by drama_id order by time_created limit ?"
+        sql = "select drama_id, max(episode) as episode from %s group by drama_id order by time_created desc limit ?"
         return self.fetch(sql, count)
 
 class UrlContentModel(BaseModel):
