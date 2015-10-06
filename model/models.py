@@ -83,6 +83,7 @@ class DramaModel(BaseModel):
         sql = "select * from %s where id in (select DISTINCT(drama_id) from drama_episode) order by year desc limit ? offset ?"
         return self.fetch(sql, limit, offset)
 
+
 class DramaEpisodeModel(BaseModel):
     __tablename__ = 'drama_episode'
 
@@ -97,6 +98,10 @@ class DramaEpisodeModel(BaseModel):
     def update_url(self, id, url, hd_url):
         sql = "update %s set url=?, hd_url=? where id=?"
         return self.execute(sql, url, hd_url, id)
+
+    def new_drama(self, count):
+        sql = "select drama_id, max(episode) as episode from %s group by drama_id order by time_created limit ?"
+        return self.fetch(sql, count)
 
 class UrlContentModel(BaseModel):
     __tablename__ = 'url_content'

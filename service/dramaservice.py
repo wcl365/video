@@ -17,3 +17,9 @@ class DramaService(object):
             eps = dramaEpisodeModel.get_by_drama_id(drama['id'])
             drama['eps'] = eps
         return dramas
+
+    def new_drama(self, count=10):
+        eps = dramaEpisodeModel.new_drama(count=count)
+        for ep in eps:
+            ep['drama'] = dramaModel.get_by_id(ep['drama_id'])
+        return eps

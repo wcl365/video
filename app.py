@@ -174,6 +174,21 @@ class WeixinHandler(BaseHandler):
 
         if isinstance(message, EventMessage) and message.type == 'subcribe':
             response = self.application.wechat.response_text("感谢关注, 我们会每天给你推荐你最感兴趣的演出! (。・`ω´・)")
+        elif isinstance(message, TextMessage) and (message.content.strip() == 'new'):
+            eps = self.application.dramaService.new_drama()
+            content = []
+            for ep in eps:
+                tmp = {
+                    'title': u'%s  第%s集' % (ep['drama']['name'], ep['episode']),
+                    'description': ep['drama']['description'],
+                    'picurl': ep['drama']['poster'],
+                    'url': u'%s%s%s' % (appConfig.get("server.host"), '/drama/episode/play/', self.encode(ep['drama_id'], ep['episode']))
+                }
+                content.append(tmp)
+            if len(content) == 0:
+                response = self.application.wechat.response_text("没有最新的结果")
+            else:
+                response = self.application.wechat.response_news(content)
         elif isinstance(message, TextMessage) and (message.content.startswith("search") or message.content.startswith("ss")):
             value = message.content.split()
             keyword = ' '.join(value[1:])
