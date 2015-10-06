@@ -8,12 +8,17 @@
         <title>{{ drama['name'] }} 第{{ ep['episode'] }}集</title>
     </head>
     <body>
-        <video src="{{ ep['hd_url'] }}" style="width: 100%;"></video>
-        <ul>
-            {% for e in eps %}
-                <li class="ep"><a href="/drama/episode/play/{{ e['hash_code'] }}">第{{ e['episode'] }}集</a></li>
-            {% end %}
-        </ul>
+        <div id="pc" hidden style="margin-top: 30px; font-size: 1.4em;">
+            <p style="text-align: center;"> 请在手机浏览器上打开观看! </p>
+        </div>
+        <div id="main">
+            <video src="{{ ep['hd_url'] }}" style="width: 100%;"></video>
+            <ul>
+                {% for e in eps %}
+                    <li class="ep"><a href="/drama/episode/play/{{ e['hash_code'] }}">第{{ e['episode'] }}集</a></li>
+                {% end %}
+            </ul>
+        </div>
         <style>
             * { margin: 0 0; padding: 0 0;}
             a{text-decoration : none}
@@ -22,5 +27,12 @@
                 text-align: center; border-bottom: 1px solid gray; text-decoration:none; list-style:none;
                 font-size: 1.4em; font-weight: bold; margin: 0 auto;}
         </style>
+        <script>
+            console.log(navigator.userAgent);
+            if(! (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) )) {
+                document.getElementById("main").setAttribute("hidden", "true");
+                document.getElementById("pc").removeAttribute("hidden");
+             }
+        </script>
     </body>
 </html>
