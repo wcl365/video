@@ -22,9 +22,9 @@ class TudouParser(BaseParser):
             return
 
         urls = [
-            "http://vr.tudou.com/v2proxy/v2.m3u8?debug=1&it=%s&st=5&pw=" % iid,
-            "http://vr.tudou.com/v2proxy/v2.m3u8?debug=1&it=%s&st=3&pw=" % iid,
-            "http://vr.tudou.com/v2proxy/v2.m3u8?debug=1&it=%s&st=2&pw=" % iid
+            "http://vr.tudou.com/v2proxy/v2.m3u8?it=%s&st=5" % iid,
+            "http://vr.tudou.com/v2proxy/v2.m3u8?it=%s&st=3" % iid,
+            "http://vr.tudou.com/v2proxy/v2.m3u8?it=%s&st=2" % iid
             ]
         can_urls = []
         for url in urls:
