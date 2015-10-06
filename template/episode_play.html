@@ -12,7 +12,7 @@
             <p style="text-align: center;"> 请在手机浏览器上打开观看! </p>
         </div>
         <div id="main">
-            <video src="{{ ep['hd_url'] }}" style="width: 100%;"></video>
+            <video controls preload src="{{ ep['hd_url'] }}" style="width: 100%;"></video>
             <ul>
                 {% for e in eps %}
                     <li class="ep"><a href="/drama/episode/play/{{ e['hash_code'] }}">第{{ e['episode'] }}集</a></li>
