@@ -24,7 +24,7 @@
                     <td>{{ drama['actors'] }}</td>
                     <td>{{ drama['year'] }}</td>
                     <td><a href="{{ drama['source'] }}" target="_blank">Goto</a></td>
-                    <td><a href="/drama/episode/{{ drama['id'] }}" target="_blank">选集</a></td>
+                    <td><a href="/drama/episode/{{ drama['hash_code'] }}" target="_blank">选集</a></td>
                 </tr>
                 {% end %}
             </table>

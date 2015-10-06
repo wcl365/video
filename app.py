@@ -11,19 +11,20 @@ from common import appConfig
 
 from wechat.basic import WechatBasic
 from wechat.messages import *
+from hashids import Hashids
 
 
 class Application(tornado.web.Application):
     def __init__(self, mode, debug=False):
         handlers = [
             ('/', IndexHandler),
-            ('/drama/list', DramaListHandler),
-            ('/drama/episode/(\d+)', DramaEpisodeHandler),
-            ('/drama/episode/(\d+?)/(\d+?)', DramaEpisodePlayHandler),
-
+            ('/admin/drama/list', DramaListHandler),
 
             ('/api/drama/list', ApiDramaListHandler),
             ('/api/drama/search', ApiDramaSearchHandler),
+
+            ('/drama/episode/(\S+)', DramaEpisodeHandler),
+            ('/drama/episode/play/(\S+)', DramaEpisodePlayHandler),
 
             ('/weixin', WeixinHandler),
         ]
@@ -38,11 +39,20 @@ class Application(tornado.web.Application):
         self.dramaService = DramaService()
         self.wechat = WechatBasic(token=appConfig.get("wechat.token"), appid=appConfig.get("wechat.appId"),
                           appsecret=appConfig.get("wechat.appSecret"))
+        self.hashid = Hashids(salt="woshifyz")
         super(Application, self).__init__(handlers, **settings)
 
 
 class BaseHandler(tornado.web.RequestHandler):
-    pass
+    def encode(self, *ids):
+        assert len(ids) > 0
+        return self.application.hashid.encode(*ids)
+
+    def decode(self, h_str):
+        return self.application.hashid.decode(h_str)
+
+    def decodeOne(self, h_str):
+        return self.decode(h_str)[0]
 
 class DramaListHandler(BaseHandler):
     def get(self):
@@ -50,8 +60,9 @@ class DramaListHandler(BaseHandler):
         count = int(self.get_argument("count", 20))
 
         dramas = self.application.dramaService.get_drama_infos(count, page * count)
+        for d in dramas:
+            d['hash_code'] = self.encode(d['id'])
         self.render("drama_list.html", dramas=dramas)
-
 
 class ApiDramaListHandler(BaseHandler):
     def get(self):
@@ -72,20 +83,24 @@ class ApiDramaSearchHandler(BaseHandler):
 
 class DramaEpisodeHandler(BaseHandler):
     def get(self, drama_id):
+        drama_id = self.decodeOne(drama_id)
         episodes = self.application.episodeModel.get_by_drama_id(drama_id)
         self.render("episode.html", episodes=episodes)
 
 class DramaEpisodePlayHandler(BaseHandler):
-    def get(self, drama_id, ep):
+    def get(self, drama_ep_id):
+        drama_id, ep_id = self.decode(drama_ep_id)
         drama = self.application.dramaModel.get_by_id(int(drama_id))
         if not drama:
             self.write(u"节目不存在")
         episodes = self.application.episodeModel.get_by_drama_id(int(drama_id))
-        self.render("episode_play.html", ep = episodes[int(ep) - 1], eps=episodes, drama=drama)
+        for ep in episodes:
+            ep['hash_code'] = self.encode(drama_id, ep['episode'])
+        self.render("episode_play.html", ep = episodes[int(ep_id) - 1], eps=episodes, drama=drama)
 
 class IndexHandler(BaseHandler):
     def get(self):
-        self.redirect("/drama/list")
+        self.redirect("/admin/drama/list")
 
 class WeixinHandler(BaseHandler):
     def get(self):
@@ -114,11 +129,11 @@ class WeixinHandler(BaseHandler):
                     'title': u'%s  第%s集' % (d['name'], 1),
                     'description': d['description'],
                     'picurl': d['poster'],
-                    'url': u'%s%s%s/%s' % (appConfig.get("server.host"), '/drama/episode/', d['id'], 1)
+                    'url': u'%s%s' % (appConfig.get("server.host"), '/drama/episode/play/', self.encode(d['id'], 1))
                 }
                 content.append(tmp)
             if len(content) == 0:
-                response = "没有结果, 你可以尝试换个名称或者演员搜索"
+                response = self.application.wechat.response_text("没有结果, 你可以尝试换个名称或者演员搜索")
             else:
                 response = self.application.wechat.response_news(content)
         else:

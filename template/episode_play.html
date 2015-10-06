@@ -6,7 +6,7 @@
         <video src="{{ ep['hd_url'] }}" style="width: 100%;"></video>
         <ul>
             {% for e in eps %}
-                <li class="ep"><a href="/drama/episode/{{ drama['id'] }}/{{ e['episode'] }}">第{{ e['episode'] }}集</a></li>
+                <li class="ep"><a href="/drama/episode/{{ drama['hash_code'] }}">第{{ e['episode'] }}集</a></li>
             {% end %}
         </ul>
         <style>
