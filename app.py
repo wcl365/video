@@ -23,8 +23,8 @@ class Application(tornado.web.Application):
             ('/api/drama/list', ApiDramaListHandler),
             ('/api/drama/search', ApiDramaSearchHandler),
 
-            ('/drama/episode/(\S+)', DramaEpisodeHandler),
             ('/drama/episode/play/(\S+)', DramaEpisodePlayHandler),
+            ('/drama/episode/(\S+)', DramaEpisodeHandler),
 
             ('/weixin', WeixinHandler),
         ]
@@ -129,7 +129,7 @@ class WeixinHandler(BaseHandler):
                     'title': u'%s  第%s集' % (d['name'], 1),
                     'description': d['description'],
                     'picurl': d['poster'],
-                    'url': u'%s%s' % (appConfig.get("server.host"), '/drama/episode/play/', self.encode(d['id'], 1))
+                    'url': u'%s%s%s' % (appConfig.get("server.host"), '/drama/episode/play/', self.encode(d['id'], 1))
                 }
                 content.append(tmp)
             if len(content) == 0:
