@@ -1,0 +1,24 @@
+{% extends "hanliu.html" %}
+{% block title %}今日韩流{% end %}
+{% block js %}
+<script src="/static/js/jquery.min.js"></script>
+{% end %}
+{% block css %}
+<link href="/static/css/bootstrap.min.css" rel="stylesheet">
+{% end %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-12">
+            <form role="form" class="form" method="post" action="/admin/drama/parser">
+                <input type="hidden" name="drama_id" value="{{ drama_id }}" />
+                <input type="text" name="channel" value="tudou" />
+                <input type="text" name="episode" />
+                <input type="text" name="url">
+                <input type="submit" value="提交">
+            </form>
+        </div>
+    </div>
+</div>
+{% end %}

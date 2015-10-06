@@ -12,13 +12,17 @@ from common import appConfig
 from wechat.basic import WechatBasic
 from wechat.messages import *
 from hashids import Hashids
+from parser.tudou import TudouParser
 
 
 class Application(tornado.web.Application):
     def __init__(self, mode, debug=False):
         handlers = [
             ('/', IndexHandler),
-            ('/admin/drama/list', DramaListHandler),
+            ('/admin/drama/add', AdminDramaAddHandler),
+            ('/admin/drama/list', AdminDramaListHandler),
+            ('/admin/drama/search', AdminDramaSearchHandler),
+            ('/admin/drama/parser', AdminDramaParserHandler),
 
             ('/api/drama/list', ApiDramaListHandler),
             ('/api/drama/search', ApiDramaSearchHandler),
@@ -40,6 +44,9 @@ class Application(tornado.web.Application):
         self.wechat = WechatBasic(token=appConfig.get("wechat.token"), appid=appConfig.get("wechat.appId"),
                           appsecret=appConfig.get("wechat.appSecret"))
         self.hashid = Hashids(salt="woshifyz")
+        self.parser = {
+            'tudou': TudouParser()
+        }
         super(Application, self).__init__(handlers, **settings)
 
 
@@ -54,7 +61,27 @@ class BaseHandler(tornado.web.RequestHandler):
     def decodeOne(self, h_str):
         return self.decode(h_str)[0]
 
-class DramaListHandler(BaseHandler):
+class AdminBaseHandler(BaseHandler):
+    pass
+
+class AdminDramaAddHandler(AdminBaseHandler):
+    def get(self):
+        self.render("admin_drama_add.html")
+
+    def post(self):
+        name = self.get_argument("name").strip()
+        desc = self.get_argument("desc").strip()
+        actors = self.get_argument("actors").strip()
+        poster = self.get_argument("poster").strip()
+        year = int(self.get_argument("year"))
+        assert len(name) > 0
+        assert len(desc) > 0
+        assert len(actors) > 0
+        assert len(poster) > 0
+        self.application.dramaModel.insert(name, year, poster, actors, desc, "", 0)
+        self.write("success")
+
+class AdminDramaListHandler(AdminBaseHandler):
     def get(self):
         page = int(self.get_argument("page", 0))
         count = int(self.get_argument("count", 20))
@@ -63,6 +90,34 @@ class DramaListHandler(BaseHandler):
         for d in dramas:
             d['hash_code'] = self.encode(d['id'])
         self.render("drama_list.html", dramas=dramas)
+
+class AdminDramaSearchHandler(AdminBaseHandler):
+    def get(self):
+        name = self.get_argument("name", "").strip()
+        count = int(self.get_argument("count", 20))
+        if len(name) == 0:
+            dramas = []
+        else:
+            dramas = self.application.dramaService.search_by_name(name, count)
+        self.render('drama_list.html', dramas=dramas)
+
+class AdminDramaParserHandler(AdminBaseHandler):
+    def get(self):
+        drama_id = int(self.get_argument("drama_id"))
+        self.render("admin_parser.html", drama_id=drama_id)
+
+    def post(self):
+        channel = self.get_argument('channel')
+        drama_id = int(self.get_argument('drama_id'))
+        episode = int(self.get_argument('episode'))
+        url = self.get_argument('url')
+
+        url, hd_url = self.application.parser.get(channel).parse(url)
+        if not (url and hd_url):
+            self.write("error")
+        else:
+            self.application.episodeModel.insert(drama_id, episode, 0, "", url, hd_url)
+            self.write("success \n%s\n%s" % (url, hd_url))
 
 class ApiDramaListHandler(BaseHandler):
     def get(self):

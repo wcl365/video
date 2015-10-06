@@ -19,7 +19,6 @@ class TudouParser(BaseParser):
         iid = self.r1(r, content)
 
         if iid == None:
-            LOGGER.info('tudou parse error %s' % vid)
             return
 
         urls = [
