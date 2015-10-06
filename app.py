@@ -192,7 +192,7 @@ class WeixinHandler(BaseHandler):
             else:
                 response = self.application.wechat.response_news(content)
         else:
-            response = self.application.wechat.response_text("感谢发送")
+            response = self.application.wechat.response_text("这里主要分享一些影视资源\n输入:\n\nss 关键字\n\n搜索资源")
         self.write(response)
 
 if __name__ == "__main__":
