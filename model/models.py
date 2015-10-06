@@ -94,6 +94,9 @@ class DramaEpisodeModel(BaseModel):
         sql = "select * from %s where drama_id = ? order by episode"
         return self.fetch(sql, drama_id)
 
+    def update_url(self, id, url, hd_url):
+        sql = "update %s set url=?, hd_url=? where id=?"
+        return self.execute(sql, url, hd_url, id)
 
 class UrlContentModel(BaseModel):
     __tablename__ = 'url_content'
