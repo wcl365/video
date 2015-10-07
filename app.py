@@ -34,7 +34,7 @@ class Application(tornado.web.Application):
         ]
         settings = dict(template_path=os.path.join(os.path.dirname(__file__), "./template"),
                         static_path=os.path.join(os.path.dirname(__file__), "./static"),
-                        debug=True,
+                        debug=debug,
                         autoescape=None
                         )
         self.mode = mode
