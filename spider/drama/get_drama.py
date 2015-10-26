@@ -26,7 +26,6 @@ class DramaSource(BaseParser):
 
     def _fetch(self, url, year):
         text_content = self.get_decoded_html(url)
-        print text_content
         content = pq(text_content)
         trs = content("#tg_box_con li")
         for tr in trs:

@@ -9,6 +9,7 @@ import logging
 
 from common import env
 env.loadEnv()
+from common import appConfig
 
 class BaseModel(object):
     def execute(self, sql, *params):
@@ -119,11 +120,12 @@ class UrlContentModel(BaseModel):
         m.update(content)
         hash_value = m.hexdigest()
 
-        sql = "insert ignore into %s values (null, ?, ?, ?)"
-        value = self.execute(sql, url, hash_value, content)
-        if value.rowcount == 0:
-            logging.info("dupliate url, %s" % url)
-            return 0
+        if appConfig.get('storeUrlContent'):
+            sql = "insert ignore into %s values (null, ?, ?, ?)"
+            value = self.execute(sql, url, hash_value, content)
+            if value.rowcount == 0:
+                logging.info("dupliate url, %s" % url)
+                return 0
         return 1
 
 class DramaGetStrategyModel(BaseModel):
