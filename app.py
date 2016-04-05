@@ -212,7 +212,7 @@ class WeixinHandler(BaseHandler):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--port', default=8080, help="server port")
+    parser.add_argument('-p', '--port', default=appConfig.get_int('http.port', 5000), help="server port")
     parser.add_argument('-d', action="store_true", help="whether to turn on debug mode")
     parser.add_argument('-m', '--mode', default='local', help="run mode")
     args = parser.parse_args()

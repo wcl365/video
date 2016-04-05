@@ -10,5 +10,8 @@
     "server": {
         "host": "http://107.182.181.78"
     },
+    "http": {
+        "port": 5000
+    },
     "storeUrlContent": false
 }
