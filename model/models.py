@@ -120,12 +120,14 @@ class UrlContentModel(BaseModel):
         m.update(content)
         hash_value = m.hexdigest()
 
+        '''
         if appConfig.get('storeUrlContent'):
             sql = "insert ignore into %s values (null, ?, ?, ?)"
             value = self.execute(sql, url, hash_value, content)
             if value.rowcount == 0:
                 logging.info("dupliate url, %s" % url)
                 return 0
+        '''
         return 1
 
 class DramaGetStrategyModel(BaseModel):
