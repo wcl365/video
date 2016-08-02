@@ -7,6 +7,7 @@ import urllib
 import re
 from base import BaseParser
 
+
 class YoukuParser(BaseParser):
     def real_parse(self, vid):
         resp = requests.get('http://v.youku.com/player/getPlayList/VideoIDS/%s/Pf/4/ctype/12/ev/1' % vid)
@@ -20,16 +21,16 @@ class YoukuParser(BaseParser):
         new_ep, sid, token = self._generate_ep(vid, ep)
 
         m3u8_query = urllib.urlencode(dict(
-                ctype=12,
-                ep=new_ep,
-                ev=1,
-                keyframe=1,
-                oip=ip,
-                sid=sid,
-                token=token,
-                ts=int(time.time()),
-                type='hd2',
-                vid=vid,
+            ctype=12,
+            ep=new_ep,
+            ev=1,
+            keyframe=1,
+            oip=ip,
+            sid=sid,
+            token=token,
+            ts=int(time.time()),
+            type='hd2',
+            vid=vid,
         ))
 
         self.hls_url = 'http://pl.youku.com/playlist/m3u8?' + m3u8_query

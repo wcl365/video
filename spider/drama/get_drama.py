@@ -1,21 +1,19 @@
 from pyquery import PyQuery as pq
-import requests
 import re
 
-from model.models import dramaModel, DramaEpisodeModel, UrlContentModel
+from model.models import DramaModel, DramaEpisodeModel, UrlContentModel
 from parser.tudou import TudouParser, BaseParser
-from common import env
-env.loadEnv()
 
 HOST = "http://www.hanjucc.com"
 
+
 class DramaSource(BaseParser):
     URL = [
-            "http://www.hanjucc.com/hanju/list_140_1.html",
-            "http://www.hanjucc.com/hanju/list_140_2.html",
-            "http://www.hanjucc.com/hanju/list_140_3.html",
-            "http://www.hanjucc.com/hanju/list_140_4.html"
-        ]
+        "http://www.hanjucc.com/hanju/list_140_1.html",
+        "http://www.hanjucc.com/hanju/list_140_2.html",
+        "http://www.hanjucc.com/hanju/list_140_3.html",
+        "http://www.hanjucc.com/hanju/list_140_4.html"
+    ]
 
     def __init__(self):
         self.dramaEpisodeSource = DramaEpisodeSource()
@@ -36,16 +34,16 @@ class DramaSource(BaseParser):
             name = name.strip()
             if not name:
                 print 'fyz error', url
-                import pdb; pdb.set_trace()
                 continue
-            drama = dramaModel.get_by_name(name)
+            drama = DramaModel.instance().get_by_name(name)
             if not drama:
                 actors = tr(".lionhover .right_info .actor").contents()[1]
                 desc = tr(".lionhover .right_info .descr").contents()[1]
                 print pic, name, year, href, actors, desc
-                dramaModel.insert(name, year, pic, actors, desc, href)
-                drama = dramaModel.get_by_name(name)
+                DramaModel.instance().insert(name, year, pic, actors, desc, href)
+                drama = DramaModel.instance().get_by_name(name)
             self.dramaEpisodeSource.fetch(drama['id'], drama['source'])
+
 
 class DramaEpisodeSource(BaseParser):
     def __init__(self):
@@ -82,7 +80,6 @@ class DramaEpisodeSource(BaseParser):
                 break
             i += 1
 
-
     def fetch_ep_page(self, d_id, url, ep):
         text_content = self.get_decoded_html(url)
         if text_content.find("http://www.tudou.com/programs/view") < 0:
@@ -98,15 +95,15 @@ class DramaEpisodeSource(BaseParser):
             self.model.insert(d_id, ep, 0, source, url, hd_url)
 
     def fetch_by_ep_id(self, d_id, vid, cur, last_ep=0):
-        for i in range(1, cur+1):
+        for i in range(1, cur + 1):
             if i <= last_ep:
                 continue
             url = "http://www.hanjucc.com/hanju/%s/%s.html" % (vid, i)
             self.fetch_ep_page(d_id, url, i)
 
+
 if __name__ == '__main__':
     DramaSource().fetch()
-
 
 '''
 URL = [

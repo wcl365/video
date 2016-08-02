@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 import os, os.path
-import tornado.ioloop
-import tornado.web
 import argparse
 
-from model.models import DramaModel, DramaEpisodeModel, dramaEpisodeModel
+from skyb.quick.tornado import BaseApplication, BaseAuthHandler
+from skyb import load_configuration, MysqlEngine
+
+from model.models import DramaModel, DramaEpisodeModel, BaseModel
 from service import DramaService
-from common import appConfig
 
 from wechat.basic import WechatBasic
 from wechat.messages import *
@@ -15,8 +15,8 @@ from hashids import Hashids
 from parser.tudou import TudouParser
 
 
-class Application(tornado.web.Application):
-    def __init__(self, mode, debug=False):
+class Application(BaseApplication):
+    def __init__(self, conf, debug=False):
         handlers = [
             ('/', IndexHandler),
             ('/admin/drama/add', AdminDramaAddHandler),
@@ -32,17 +32,22 @@ class Application(tornado.web.Application):
 
             ('/weixin', WeixinHandler),
         ]
-        settings = dict(template_path=os.path.join(os.path.dirname(__file__), "./template"),
-                        static_path=os.path.join(os.path.dirname(__file__), "./static"),
+        settings = dict(template_path=os.path.join(os.path.dirname(__file__), "./web/template"),
+                        static_path=os.path.join(os.path.dirname(__file__), "./web/static"),
                         debug=debug,
                         autoescape=None
                         )
-        self.mode = mode
-        self.dramaModel = DramaModel()
-        self.episodeModel = DramaEpisodeModel()
+        self.conf = conf
+        engine = MysqlEngine(conf.get('db.uri'))
+
+        BaseModel.setup_all_model(engine)
+
+        self.dramaModel = DramaModel.instance()
+        self.episodeModel = DramaEpisodeModel.instance()
+
         self.dramaService = DramaService()
-        self.wechat = WechatBasic(token=appConfig.get("wechat.token"), appid=appConfig.get("wechat.appId"),
-                          appsecret=appConfig.get("wechat.appSecret"))
+        self.wechat = WechatBasic(token=conf.get("wechat.token"), appid=conf.get("wechat.appId"),
+                                  appsecret=conf.get("wechat.appSecret"))
         self.hashid = Hashids(salt="woshifyz")
         self.parser = {
             'tudou': TudouParser()
@@ -50,7 +55,7 @@ class Application(tornado.web.Application):
         super(Application, self).__init__(handlers, **settings)
 
 
-class BaseHandler(tornado.web.RequestHandler):
+class BaseHandler(BaseAuthHandler):
     def encode(self, *ids):
         assert len(ids) > 0
         return self.application.hashid.encode(*ids)
@@ -61,8 +66,12 @@ class BaseHandler(tornado.web.RequestHandler):
     def decodeOne(self, h_str):
         return self.decode(h_str)[0]
 
+
 class AdminBaseHandler(BaseHandler):
-    pass
+    def __init__(self, *args, **kw):
+        super(AdminBaseHandler, self).__init__(*args, **kw)
+        self._auth = self.application.conf.get("server.http.password")
+
 
 class AdminDramaAddHandler(AdminBaseHandler):
     def get(self):
@@ -81,6 +90,7 @@ class AdminDramaAddHandler(AdminBaseHandler):
         self.application.dramaModel.insert(name, year, poster, actors, desc, "", 0)
         self.write("success")
 
+
 class AdminDramaListHandler(AdminBaseHandler):
     def get(self):
         page = int(self.get_argument("page", 0))
@@ -91,6 +101,7 @@ class AdminDramaListHandler(AdminBaseHandler):
             d['hash_code'] = self.encode(d['id'])
         self.render("drama_list.html", dramas=dramas)
 
+
 class AdminDramaSearchHandler(AdminBaseHandler):
     def get(self):
         name = self.get_argument("name", "").strip()
@@ -100,6 +111,7 @@ class AdminDramaSearchHandler(AdminBaseHandler):
         else:
             dramas = self.application.dramaService.search_by_name(name, count)
         self.render('drama_list.html', dramas=dramas)
+
 
 class AdminDramaParserHandler(AdminBaseHandler):
     def get(self):
@@ -119,12 +131,14 @@ class AdminDramaParserHandler(AdminBaseHandler):
             self.application.episodeModel.insert(drama_id, episode, 0, "", url, hd_url)
             self.write("success \n%s\n%s" % (url, hd_url))
 
+
 class ApiDramaListHandler(BaseHandler):
     def get(self):
         page = int(self.get_argument("page", 0))
         count = int(self.get_argument("count", 20))
         dramas = self.application.dramaService.get_drama_infos(count, page * count)
         self.write({"videos": dramas})
+
 
 class ApiDramaSearchHandler(BaseHandler):
     def get(self):
@@ -136,11 +150,13 @@ class ApiDramaSearchHandler(BaseHandler):
             dramas = self.application.dramaService.search_by_name(name, count)
         self.write({"videos": dramas})
 
+
 class DramaEpisodeHandler(BaseHandler):
     def get(self, drama_id):
         drama_id = self.decodeOne(drama_id)
         episodes = self.application.episodeModel.get_by_drama_id(drama_id)
         self.render("episode.html", episodes=episodes)
+
 
 class DramaEpisodePlayHandler(BaseHandler):
     def get(self, drama_ep_id):
@@ -151,11 +167,13 @@ class DramaEpisodePlayHandler(BaseHandler):
         episodes = self.application.episodeModel.get_by_drama_id(int(drama_id))
         for ep in episodes:
             ep['hash_code'] = self.encode(drama_id, ep['episode'])
-        self.render("episode_play.html", ep = episodes[int(ep_id) - 1], eps=episodes, drama=drama)
+        self.render("episode_play.html", ep=episodes[int(ep_id) - 1], eps=episodes, drama=drama)
+
 
 class IndexHandler(BaseHandler):
     def get(self):
         self.redirect("/admin/drama/list")
+
 
 class WeixinHandler(BaseHandler):
     def get(self):
@@ -182,14 +200,17 @@ class WeixinHandler(BaseHandler):
                     'title': u'%s  第%s集' % (ep['drama']['name'], ep['episode']),
                     'description': ep['drama']['description'],
                     'picurl': ep['drama']['poster'],
-                    'url': u'%s%s%s' % (appConfig.get("server.host"), '/drama/episode/play/', self.encode(ep['drama_id'], ep['episode']))
+                    'url': u'%s%s%s' % (
+                        self.application.conf.get("server.host"), '/drama/episode/play/',
+                        self.encode(ep['drama_id'], ep['episode']))
                 }
                 content.append(tmp)
             if len(content) == 0:
                 response = self.application.wechat.response_text("没有最新的结果")
             else:
                 response = self.application.wechat.response_news(content)
-        elif isinstance(message, TextMessage) and (message.content.startswith("search") or message.content.startswith("ss")):
+        elif isinstance(message, TextMessage) and (
+                    message.content.startswith("search") or message.content.startswith("ss")):
             value = message.content.split()
             keyword = ' '.join(value[1:])
             dramas = self.application.dramaService.search_by_name(keyword, count=8)
@@ -199,7 +220,8 @@ class WeixinHandler(BaseHandler):
                     'title': u'%s  第%s集' % (d['name'], 1),
                     'description': d['description'],
                     'picurl': d['poster'],
-                    'url': u'%s%s%s' % (appConfig.get("server.host"), '/drama/episode/play/', self.encode(d['id'], 1))
+                    'url': u'%s%s%s' % (
+                        self.application.conf.get("server.host"), '/drama/episode/play/', self.encode(d['id'], 1))
                 }
                 content.append(tmp)
             if len(content) == 0:
@@ -210,13 +232,12 @@ class WeixinHandler(BaseHandler):
             response = self.application.wechat.response_text("这里主要分享一些影视资源\n输入:\n\nss 关键字\n\n搜索资源")
         self.write(response)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--port', default=appConfig.get_int('http.port', 5000), help="server port")
+
+    parser.add_argument('-c', '--config')
+    parser.add_argument('-p', '--port')
     parser.add_argument('-d', action="store_true", help="whether to turn on debug mode")
-    parser.add_argument('-m', '--mode', default='local', help="run mode")
-    args = parser.parse_args()
-    application = Application(args.mode, args.d)
-    application.listen(args.port)
-    print 'application start at port %s' % args.port
-    tornado.ioloop.IOLoop.instance().start()
+    args, _ = parser.parse_known_args()
+    Application(load_configuration(args.config), args.d).boot(args.port)

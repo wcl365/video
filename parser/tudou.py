@@ -1,16 +1,11 @@
 # coding: utf8
 
-import requests
 from base import BaseParser
 import logging
-from model.models import ucModel
+from model.models import UrlContentModel
 
-from common import config
-from common import env
-env.loadEnv()
 
 class TudouParser(BaseParser):
-
     def parse(self, vid, store=True):
         content = self.get_decoded_html("http://www.tudou.com/programs/view/%s" % vid)
         if not content:
@@ -25,11 +20,11 @@ class TudouParser(BaseParser):
             "http://vr.tudou.com/v2proxy/v2.m3u8?it=%s&st=5" % iid,
             "http://vr.tudou.com/v2proxy/v2.m3u8?it=%s&st=3" % iid,
             "http://vr.tudou.com/v2proxy/v2.m3u8?it=%s&st=2" % iid
-            ]
+        ]
         can_urls = []
         for url in urls:
             if store:
-                persistentResult = ucModel.insert(url)
+                persistentResult = UrlContentModel.instance().insert(url)
             else:
                 persistentResult = 1
             if persistentResult >= 0:
